@@ -12,7 +12,8 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { Swipeable } from 'react-native-gesture-handler';
+import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+import Reanimated, { useAnimatedStyle, interpolate, Extrapolation, SharedValue } from 'react-native-reanimated';
 import { useExpenses } from '../hooks/useExpenses';
 import { COLORS, CATEGORIES, CATEGORY_CONFIG } from '../constants';
 import {
@@ -31,9 +32,8 @@ const ExpensesScreen: React.FC = () => {
   const navigation = useNavigation<Nav>();
   const { expenses, currency, deleteExpense } = useExpenses();
   const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<
-    ExpenseCategory | null
-  >(null);
+  const [selectedCategory, setSelectedCategory] =
+    useState<ExpenseCategory | null>(null);
 
   const filtered = expenses.filter(e => {
     const matchSearch =
@@ -52,51 +52,60 @@ const ExpensesScreen: React.FC = () => {
   }));
 
   const handleDelete = (expense: Expense) => {
-    Alert.alert(
-      'Delete Expense',
-      `Delete "${expense.title}"?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => deleteExpense(expense.id),
-        },
-      ]
-    );
+    Alert.alert('Delete Expense', `Delete "${expense.title}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => deleteExpense(expense.id),
+      },
+    ]);
   };
 
-  const renderRightActions = (expense: Expense) => (
-    _: Animated.AnimatedInterpolation<number>,
-    dragX: Animated.AnimatedInterpolation<number>
-  ) => {
-    const scale = dragX.interpolate({
-      inputRange: [-80, 0],
-      outputRange: [1, 0.5],
-      extrapolate: 'clamp',
-    });
-    return (
-      <TouchableOpacity
-        style={styles.deleteAction}
-        onPress={() => handleDelete(expense)}>
-        <Animated.Text style={[styles.deleteIcon, { transform: [{ scale }] }]}>
-          🗑️
-        </Animated.Text>
-        <Text style={styles.deleteLabel}>Delete</Text>
-      </TouchableOpacity>
-    );
-  };
+  const renderRightActions =
+    (expense: Expense) =>
+    (
+      prog: SharedValue<number>,
+      dragX: SharedValue<number>,
+    ) => {
+      const animatedStyle = useAnimatedStyle(() => {
+        const scale = interpolate(
+          dragX.value,
+          [-80, 0],
+          [1, 0.5],
+          Extrapolation.CLAMP
+        );
+        return {
+          transform: [{ scale }],
+        };
+      });
+
+      return (
+        <TouchableOpacity
+          style={styles.deleteAction}
+          onPress={() => handleDelete(expense)}
+        >
+          <Reanimated.Text
+            style={[styles.deleteIcon, animatedStyle]}
+          >
+            🗑️
+          </Reanimated.Text>
+          <Text style={styles.deleteLabel}>Delete</Text>
+        </TouchableOpacity>
+      );
+    };
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
 
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>All Expenses</Text>
         <TouchableOpacity
           style={styles.addBtn}
-          onPress={() => navigation.navigate('AddExpense', {})}>
+          onPress={() => navigation.navigate('AddExpense', {})}
+        >
           <Text style={styles.addBtnText}>+</Text>
         </TouchableOpacity>
       </View>
@@ -121,13 +130,18 @@ const ExpensesScreen: React.FC = () => {
       {/* Category Filter */}
       <View style={styles.filterWrap}>
         <TouchableOpacity
-          style={[styles.filterChip, !selectedCategory && styles.filterChipActive]}
-          onPress={() => setSelectedCategory(null)}>
+          style={[
+            styles.filterChip,
+            !selectedCategory && styles.filterChipActive,
+          ]}
+          onPress={() => setSelectedCategory(null)}
+        >
           <Text
             style={[
               styles.filterChipText,
               !selectedCategory && styles.filterChipTextActive,
-            ]}>
+            ]}
+          >
             All
           </Text>
         </TouchableOpacity>
@@ -141,9 +155,8 @@ const ExpensesScreen: React.FC = () => {
                 styles.filterChip,
                 isActive && { backgroundColor: cfg.bg, borderColor: cfg.color },
               ]}
-              onPress={() =>
-                setSelectedCategory(isActive ? null : cat)
-              }>
+              onPress={() => setSelectedCategory(isActive ? null : cat)}
+            >
               <Text style={styles.filterChipIcon}>{cfg.icon}</Text>
               {isActive && (
                 <Text style={[styles.filterChipText, { color: cfg.color }]}>
@@ -196,7 +209,9 @@ const ExpensesScreen: React.FC = () => {
                 expense={item}
                 currency={currency}
                 showDate={false}
-                onPress={() => navigation.navigate('ExpenseDetail', { expense: item })}
+                onPress={() =>
+                  navigation.navigate('ExpenseDetail', { expense: item })
+                }
               />
             </Swipeable>
           )}
