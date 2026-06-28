@@ -82,7 +82,7 @@ const DashboardScreen: React.FC = () => {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}

@@ -26,11 +26,7 @@ const TAB_ICONS: Record<string, string> = {
   Settings: '⚙️',
 };
 
-function TabBar({
-  state,
-  descriptors,
-  navigation,
-}: any) {
+function TabBar({ state, descriptors, navigation }: any) {
   return (
     <View style={tabStyles.container}>
       {state.routes.map((route: any, index: number) => {
@@ -41,13 +37,10 @@ function TabBar({
             key={route.key}
             style={[tabStyles.tab, isFocused && tabStyles.tabActive]}
             onPress={() => navigation.navigate(route.name)}
-            activeOpacity={0.7}>
+            activeOpacity={0.7}
+          >
             <Text style={tabStyles.icon}>{icon}</Text>
-            <Text
-              style={[
-                tabStyles.label,
-                isFocused && tabStyles.labelActive,
-              ]}>
+            <Text style={[tabStyles.label, isFocused && tabStyles.labelActive]}>
               {route.name}
             </Text>
             {isFocused && <View style={tabStyles.activeDot} />}
@@ -105,7 +98,8 @@ function MainTabs() {
   return (
     <Tab.Navigator
       tabBar={props => <TabBar {...props} />}
-      screenOptions={{ headerShown: false }}>
+      screenOptions={{ headerShown: false }}
+    >
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Expenses" component={ExpensesScreen} />
       <Tab.Screen name="Analytics" component={AnalyticsScreen} />
